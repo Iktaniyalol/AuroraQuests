@@ -65,7 +65,7 @@ public class BrewingObjective extends StringTypedObjective {
     }
 
     public void onBrew(BrewEvent event) {
-        var player = brewingStands.remove(event.getBlock().getLocation());
+        var player = brewingStands.get(event.getBlock().getLocation());
         if (player == null) return;
 
         final var currentResults = Stream.of(event.getContents().getStorageContents())
