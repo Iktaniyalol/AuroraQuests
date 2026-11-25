@@ -3,6 +3,8 @@ package gg.auroramc.quests.api.quest;
 import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.command.CommandDispatcher;
 import gg.auroramc.aurora.api.message.Placeholder;
+import gg.auroramc.aurora.api.reward.MoneyReward;
+import gg.auroramc.aurora.api.reward.NumberReward;
 import gg.auroramc.aurora.api.reward.RewardExecutor;
 import gg.auroramc.quests.AuroraQuests;
 import gg.auroramc.quests.api.event.EventBus;
@@ -12,6 +14,7 @@ import gg.auroramc.quests.api.factory.ObjectiveFactory;
 import gg.auroramc.quests.api.profile.Profile;
 import gg.auroramc.quests.api.questpool.QuestPool;
 import gg.auroramc.quests.api.objective.Objective;
+import gg.auroramc.quests.util.JesHook;
 import gg.auroramc.quests.util.RewardUtil;
 import gg.auroramc.quests.util.SoundUtil;
 import lombok.Getter;
@@ -238,6 +241,22 @@ public class Quest extends EventBus {
             SoundUtil.playSound(player, sound.getSound(), sound.getVolume(), sound.getPitch());
         }
 
+        double questMoney = 0;
+        boolean hasMoneyReward = false;
+        for (var reward : rewards.values()) {
+            if (reward instanceof MoneyReward) {
+                Double v = ((NumberReward) reward).getValue(placeholders);
+                if (v != null) {
+                    questMoney += v;
+                    hasMoneyReward = true;
+                }
+            }
+        }
+        if (hasMoneyReward && questMoney > 0) {
+            JesHook.intent(player.getUniqueId(), questMoney, true,
+                    "SOURCE", "quests", "quest-reward",
+                    "{\"quest\":\"" + definition.getId() + "\"}");
+        }
         RewardExecutor.execute(rewards.values().stream().toList(), player, 1, placeholders);
     }
 }
